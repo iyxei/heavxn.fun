@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <title>@heaven.xyz</title>
+    <script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@500&family=Roboto:wght@400;700&family=Space+Mono:wght@400;700&family=Teko:wght@600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: #000;
+            font-family: 'Roboto', sans-serif;
+            min-height: 90vh;
+            overflow: hidden;
+            overflow-x: hidden;
+        }
+
+        .bg-stack {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bg-layer {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 1.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+            will-change: opacity;
+        }
+
+        .bg-layer.active { opacity: 1; }
+
+        .bg-layer::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5) 70%, rgba(0, 0, 0, 0.78));
+            pointer-events: none;
+        }
+
+        .lyrics-left,
+        .lyrics-right {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 220px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.9;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.75;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .lyrics-left {
+            left: 3%;
+            text-align: left;
+            color: #1a1a1a;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 0 20px rgba(255, 255, 255, 0.6);
+        }
+
+        .lyrics-right {
+            right: 3%;
+            text-align: right;
+            color: #e0e0e0;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .lyrics-left p,
+        .lyrics-right p {
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .lyrics-left p:last-child,
+        .lyrics-right p:last-child { margin-bottom: 0; }
+
+        .lyrics-left .highlight,
+        .lyrics-right .highlight {
+            font-weight: 700;
+            opacity: 1;
+        }
+
+        .lyrics-left .highlight { color: #000; }
+        .lyrics-right .highlight { color: #fff; }
+
+        #intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: url("https://i.pinimg.com/1200x/4b/53/1b/4b531b6b6c53163a1e180d9992e68eb9.jpg");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 1s ease, visibility 1s ease;
+            padding: 20px;
+        }
+
+        .ascii-container {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            line-height: 1.2;
+            white-space: pre;
+            text-align: center;
+            font-weight: 700;
+            background: linear-gradient(180deg, #ffffff 0%, #444444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            user-select: none;
+        }
+
+        .intro-progress-wrapper {
+            margin-top: 2rem;
+            width: 300px;
+            max-width: 90vw;
+            display: flex;
+            justify-content: center;
+        }
+
+        .intro-progress-bar {
+            width: 100%;
+            background: #222;
+            border-radius: 4px;
+            padding: 2px;
+        }
+
+        .intro-progress-fill {
+            height: 4px;
+            width: 0%;
+            background: linear-gradient(90deg, #fff, #888);
+            border-radius: 2px;
+            transition: width 0.05s linear;
+        }
+
+        .main-content {
+            display: none;
+            position: relative;
+            z-index: 1;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .main-content.revealed { opacity: 1; }
+
+        footer {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            color: #999;
+            text-align: center;
+            text-transform: lowercase;
+            letter-spacing: 0.5px;
+            margin-top: 20rem;
+            margin-bottom: 2rem;
+            user-select: none;
+            padding: 0 20px;
+        }
+
+        footer span {
+            color: #bbb;
+            font-weight: 700;
+            cursor: pointer;
+            transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        footer span:hover { color: #fff; }
+
+        footer a {
+            color: #bbb;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        footer a:hover { color: #fff; }
+
+        .cat-ascii {
+            display: block;
+            margin: 75px auto 0;
+            width: 30%;
+            aspect-ratio: 1/1;
+            background-image: url('https://file.garden/aPNQD5oGSn0LJI5K/Taeyeon-removebg-preview.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .top-dock {
+            position: fixed;
+            top: 1.8rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            padding: 0.5rem 1.5rem;
+            background: rgba(15, 15, 15, 0.65);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: lowercase;
+            letter-spacing: 1px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            pointer-events: none;
+        }
+
+        .top-dock.visible { opacity: 1; pointer-events: auto; }
+        .dock-link { color: #888; text-decoration: none; transition: color 0.2s; cursor: pointer; }
+        .dock-link:hover { color: #fff; }
+        .dock-sep { color: #333; user-select: none; }
+
+        .typing-wrapper {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            color: #fff;
+            letter-spacing: 1px;
+            min-height: 4rem;
+        }
+
+        .cursor {
+            display: inline-block;
+            animation: blink 1s step-end infinite;
+            color: #fff;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 3rem 0 2rem;
+            color: #888;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            user-select: none;
+        }
+
+        .section-divider::before,
+        .section-divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #333;
+        }
+
+        .section-label { white-space: nowrap; color: #eeeded; }
+
+        .music-toggle {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(15, 15, 15, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d0d0d0;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: transform 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            font-family: 'Space Mono', monospace;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .music-toggle:hover {
+            transform: scale(1.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.35);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+        }
+
+        .music-toggle.on { color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+
+        .music-toggle.on::after {
+            content: "";
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            animation: musicPulse 1.8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes musicPulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.15); opacity: 0; }
+        }
+
+        .section-divider1 {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #888;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            user-select: none;
+            margin-top: 150px;
+            margin-bottom: 6rem;
+        }
+
+        .section-divider1::before,
+        .section-divider1::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #333;
+        }
+
+        .section-label1 { white-space: nowrap; color: #555; }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #000000;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 1000;
+            padding: 0;
+        }
+
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-logo a {
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: 2px;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-logo a:hover { color: #fa050586; }
+
+        .navbar-menu {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+            margin: 0;
+            padding: 0;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #d0d0d0;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover { color: #fff; }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #fafafa47;
+        }
+
+        .login-btn {
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            color: #d0d0d0;
+            transition: color 0.3s ease;
+        }
+
+        .theme-toggle:hover { color: #fff; }
+
+        .hvn-cards-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+            min-height: 500px;
+            position: relative;
+            z-index: 2;
+            padding: 0 20px;
+        }
+
+        #typing-text { color: red; }
+        #home { scroll-margin-top: 80px; }
+
+        .hvn-card {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            position: relative;
+            background: #000;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            width: 130px;
+            height: 340px;
+            flex-shrink: 0;
+            transition:
+                width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                border-color 0.4s ease,
+                box-shadow 0.4s ease;
+        }
+
+        .hvn-card:hover {
+            z-index: 10;
+            transform: translateY(-10px);
+            width: 260px;
+            height: 460px;
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 20px 60px rgba(255, 255, 255, 0.2), 0 20px 60px rgba(0, 0, 0, 0.7);
+        }
+
+        .hvn-banner {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 165px;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+
+        .hvn-banner::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(to bottom, transparent, #000);
+        }
+
+        .hvn-avatar-wrap {
+            position: absolute;
+            left: 50%;
+            top: 125px;
+            width: 80px;
+            height: 80px;
+            z-index: 4;
+            transform: translateX(-50%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .hvn-card:hover .hvn-avatar-wrap {
+            transform: translateX(-50%) scale(1.06);
+        }
+
+        .hvn-avatar-circle {
+            border: 3px solid rgba(0, 0, 0, 0.12);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            background-color: #1a1a1a;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .hvn-card:hover .hvn-avatar-circle {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 0 3px rgba(255, 255, 255, 0.35);
+        }
+
+        .hvn-avatar-deco {
+            display: none;
+            z-index: 5;
+            pointer-events: none;
+            position: absolute;
+            inset: -12px;
+            width: calc(100% + 24px);
+            height: calc(100% + 24px);
+        }
+
+        .hvn-avatar-deco.loaded { display: block; }
+
+        .hvn-status-dot {
+            border: 2px solid #000;
+            border-radius: 50%;
+            position: absolute;
+            transition: background 0.3s ease;
+            background: #747f8d;
+            width: 13px;
+            height: 13px;
+            bottom: 0;
+            right: 0;
+        }
+
+        .hvn-status-dot.online { background: #43b581; box-shadow: 0 0 6px #43b581; }
+        .hvn-status-dot.idle   { background: #faa61a; box-shadow: 0 0 6px #faa61a; }
+        .hvn-status-dot.dnd    { background: #f04747; box-shadow: 0 0 6px #f04747; }
+
+        .hvn-info {
+            position: absolute;
+            left: 0;
+            top: 211px;
+            bottom: 0;
+            width: 100%;
+            padding: 4px 10px 12px;
+            text-align: center;
+            pointer-events: none;
+            z-index: 3;
+            overflow: hidden;
+        }
+
+        .hvn-username {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
+        }
+
+        .hvn-tag,
+        .hvn-bio,
+        .hvn-status-text {
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        .hvn-card:hover .hvn-tag,
+        .hvn-card:hover .hvn-bio,
+        .hvn-card:hover .hvn-status-text {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hvn-tag {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 6px;
+        }
+
+        .hvn-bio {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .hvn-status-text {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            justify-content: center;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.45);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hvn-status-text .dot-small { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .dot-online { background: #43b581; } .dot-idle { background: #faa61a; } .dot-dnd { background: #f04747; } .dot-offline { background: #747f8d; }
+
+        .hvn-activity {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        .hvn-activity.active { display: flex; }
+
+        .hvn-card:hover .hvn-activity.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hvn-activity-art {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+
+        .hvn-activity-text {
+            flex: 1;
+            min-width: 0;
+            text-align: left;
+        }
+
+        .hvn-activity-title {
+            font-size: 10px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hvn-activity-subtitle {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hvn-activity-elapsed {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 2px;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .static-row-1137 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .trail-card {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            transition: background 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .trail-card:hover { background: rgba(255, 255, 255, 0.15); }
+        .trail-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+        .trail-name { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: #ccc; }
+
+        .archive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .archive-video {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            background: #111;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .archive-video iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* ============================================
+           TABLET / SMALL DESKTOP
+        ============================================ */
+        @media (max-width: 1250px) {
+            .lyrics-left,
+            .lyrics-right { display: none; }
+        }
+
+        @media (max-width: 1024px) {
+            .cat-ascii { width: 40%; max-width: 320px; }
+        }
+
+        /* ============================================
+           MOBILE / TABLET (< 768px)
+        ============================================ */
+        @media (max-width: 768px) {
+            .main-content {
+                margin: 70px auto 20px;
+                padding: 12px;
+            }
+
+            .ascii-container { font-size: 7px; }
+            .intro-progress-wrapper { width: 200px; }
+
+            .cat-ascii {
+                width: 50%;
+                max-width: 220px;
+                margin-top: 30px;
+            }
+
+            .typing-wrapper {
+                font-size: 0.85rem;
+                margin-top: 1.75rem;
+                padding: 0 16px;
+                min-height: 3rem;
+            }
+
+            .section-divider {
+                margin: 2rem 0 1rem;
+                font-size: 0.62rem;
+                letter-spacing: 1.5px;
+            }
+
+            .section-divider1 {
+                margin-top: 80px;
+                margin-bottom: 2.5rem;
+                font-size: 0.62rem;
+                letter-spacing: 1.5px;
+            }
+
+            /* CAROUSEL: horizontal scroll w/ snap */
+            .hvn-cards-container {
+                justify-content: flex-start;
+                overflow-x: auto;
+                overflow-y: hidden;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
+                padding: 0 20px 24px;
+                gap: 14px;
+                min-height: 520px;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .hvn-cards-container::-webkit-scrollbar { display: none; }
+
+            .hvn-card {
+                scroll-snap-align: center;
+                scroll-margin-left: 20px;
+                scroll-margin-right: 20px;
+            }
+
+            .hvn-card:hover {
+                transform: none;
+            }
+
+            .navbar-container { padding: 12px 20px; }
+            .navbar-menu { gap: 16px; }
+            .nav-link { font-size: 12px; }
+            .login-btn { padding: 6px 12px; }
+
+            .archive-grid { gap: 0.75rem; }
+
+            footer {
+                margin-top: 8rem;
+                margin-bottom: 1.5rem;
+                font-size: 0.55rem;
+                padding: 0 16px;
+            }
+
+            .music-toggle {
+                bottom: 16px;
+                right: 16px;
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .trail-card {
+                padding: 5px 12px;
+                gap: 5px;
+                max-width: 180px;
+            }
+
+            .trail-avatar { width: 24px; height: 24px; }
+            .trail-name {
+                font-size: 0.65rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .static-row-1137 {
+                gap: 8px;
+                margin-top: 0.75rem;
+            }
+        }
+
+        /* ============================================
+           SMALL MOBILE (< 480px)
+        ============================================ */
+        @media (max-width: 480px) {
+            .main-content {
+                margin: 110px auto 20px;
+                padding: 8px;
+            }
+
+            .navbar-container {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 16px;
+            }
+
+            .navbar-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 14px;
+            }
+
+            .navbar-logo a { font-size: 16px; }
+
+            .cat-ascii {
+                width: 70%;
+                max-width: 180px;
+                margin-top: 20px;
+            }
+
+            .typing-wrapper {
+                font-size: 0.72rem;
+                letter-spacing: 0.5px;
+                padding: 0 12px;
+                min-height: 2.5rem;
+            }
+
+            .section-divider,
+            .section-divider1 {
+                font-size: 0.55rem;
+                letter-spacing: 1px;
+            }
+
+            .section-divider { margin: 1.5rem 0 0.75rem; }
+
+            .section-divider1 {
+                margin-top: 60px;
+                margin-bottom: 2rem;
+            }
+
+            .hvn-cards-container {
+                padding: 0 16px 20px;
+                gap: 12px;
+                min-height: 480px;
+            }
+
+            .archive-video { border-radius: 6px; }
+
+            .music-toggle {
+                width: 38px;
+                height: 38px;
+                font-size: 15px;
+                bottom: 14px;
+                right: 14px;
+            }
+
+            footer { margin-top: 5rem; }
+
+            .trail-card { max-width: 150px; padding: 5px 10px; }
+            .trail-name { font-size: 0.6rem; }
+        }
+
+        /* ============================================
+           TOUCH DEVICES (no hover)
+           Cards stay expanded so all info is readable.
+        ============================================ */
+        @media (hover: none) {
+            .hvn-card,
+            .hvn-card:hover {
+                width: 200px;
+                height: 460px;
+                transform: none;
+            }
+
+            .hvn-card:hover {
+                border-color: rgba(0, 0, 0, 0.06);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            }
+
+            .hvn-avatar-wrap,
+            .hvn-card:hover .hvn-avatar-wrap {
+                transform: translateX(-50%);
+            }
+
+            .hvn-avatar-circle,
+            .hvn-card:hover .hvn-avatar-circle {
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+            }
+
+            .hvn-tag,
+            .hvn-bio,
+            .hvn-status-text,
+            .hvn-activity.active {
+                opacity: 1;
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-stack">
+        <div class="bg-layer" data-bg="1" style="background-image: url('https://i.pinimg.com/736x/51/c9/92/51c992c232e164467ea430128a1e93ba.jpg');"></div>
+        <div class="bg-layer" data-bg="2" style="background-image: url('https://i.pinimg.com/736x/b1/bd/7f/b1bd7fdfb6e808e22253adbb89cd2246.jpg');"></div>
+    </div>
+
+    <div class="lyrics-left">
+        <p>I would never fall in love again</p>
+        <p>Until I found her</p>
+        <p>I said, "I would never fall</p>
+        <p>Unless it's you I fall into"</p>
+    </div>
+
+    <div class="lyrics-right">
+        <p>I was lost within the darkness</p>
+        <p>But then I found her</p>
+        <p>I found you</p>
+    </div>
+
+    <button id="music-toggle" class="music-toggle on" aria-label="Toggle music">&#9835;</button>
+
+    <div id="intro-overlay">
+        <div class="ascii-container" id="ascii-text"></div>
+        <div class="intro-progress-wrapper">
+            <div class="intro-progress-bar">
+                <div class="intro-progress-fill" id="intro-progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content" id="main-content">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <div class="navbar-logo">
+                    <a href="#members-section">HEAVEN</a>
+                </div>
+                <ul class="navbar-menu">
+                    <li><a href="#" class="nav-link active" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;">Home</a></li>
+                    <li><a href="#members-section" class="nav-link">Members</a></li>
+                    <li><a href="#archive-section" class="nav-link">Archives</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="cat-ascii"></div>
+
+        <div class="typing-wrapper">
+            <span id="typing-text"></span><span class="cursor">|</span>
+        </div>
+
+        <div class="section-divider" id="members-section">
+            <span class="section-label">top tier yearners</span>
+        </div>
+        <div class="hvn-cards-container" id="xclusive-cards">
+            <div class="hvn-card" data-user-id="984436577612759111">
+                <div class="hvn-banner" style="background-image: url('https://i.pinimg.com/control1/736x/e2/24/e4/e224e4f53ae6afe93a0b20a69948ad5c.jpg')"></div>
+                <div class="hvn-avatar-wrap">
+                    <div class="hvn-avatar-circle" style="background-image: url('')">
+                        <img class="hvn-avatar-deco" src="" alt="">
+                        <div class="hvn-status-dot"></div>
+                    </div>
+                </div>
+                <div class="hvn-info">
+                    <div class="hvn-username"></div>
+                    <div class="hvn-tag"></div>
+                    <div class="hvn-bio">...</div>
+                    <div class="hvn-status-text"><span class="dot-small"></span> <span class="status-label"></span></div>
+                    <div class="hvn-activity">
+                        <img class="hvn-activity-art" src="" alt="">
+                        <div class="hvn-activity-text">
+                            <div class="hvn-activity-title"></div>
+                            <div class="hvn-activity-subtitle"></div>
+                            <div class="hvn-activity-elapsed"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hvn-card" data-user-id="1234803161454084096">
+                <div class="hvn-banner" style="background-image: url('https://file.garden/aTZTACJbkUlB55j2/tim2.jpg')"></div>
+                <div class="hvn-avatar-wrap">
+                    <div class="hvn-avatar-circle" style="background-image: url('')">
+                        <img class="hvn-avatar-deco" src="" alt="">
+                        <div class="hvn-status-dot"></div>
+                    </div>
+                </div>
+                <div class="hvn-info">
+                    <div class="hvn-username"></div>
+                    <div class="hvn-tag"></div>
+                    <div class="hvn-bio">...</div>
+                    <div class="hvn-status-text"><span class="dot-small"></span> <span class="status-label"></span></div>
+                    <div class="hvn-activity">
+                        <img class="hvn-activity-art" src="" alt="">
+                        <div class="hvn-activity-text">
+                            <div class="hvn-activity-title"></div>
+                            <div class="hvn-activity-subtitle"></div>
+                            <div class="hvn-activity-elapsed"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hvn-card" data-user-id="1032937611423121408">
+                <div class="hvn-banner" style="background-image: url('https://i.pinimg.com/originals/1f/fe/21/1ffe2120cd0425e3a15c51e502164f19.gif')"></div>
+                <div class="hvn-avatar-wrap">
+                    <div class="hvn-avatar-circle" style="background-image: url('')">
+                        <img class="hvn-avatar-deco" src="" alt="">
+                        <div class="hvn-status-dot"></div>
+                    </div>
+                </div>
+                <div class="hvn-info">
+                    <div class="hvn-username"></div>
+                    <div class="hvn-tag"></div>
+                    <div class="hvn-bio">...</div>
+                    <div class="hvn-status-text"><span class="dot-small"></span> <span class="status-label"></span></div>
+                    <div class="hvn-activity">
+                        <img class="hvn-activity-art" src="" alt="">
+                        <div class="hvn-activity-text">
+                            <div class="hvn-activity-title"></div>
+                            <div class="hvn-activity-subtitle"></div>
+                            <div class="hvn-activity-elapsed"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider" id="hall-of-fame-cards">
+            <span class="section-label">Sent by the heavens.</span>
+        </div>
+        <div class="hvn-cards-container" id="hall-of-fame-inner">
+
+            <div class="hvn-card" data-user-id="1461706823039193240">
+                <div class="hvn-banner" style="background-image: url('https://i.pinimg.com/originals/a5/cb/48/a5cb48d988588836a0d95c77b60be8f3.gif')"></div>
+                <div class="hvn-avatar-wrap">
+                    <div class="hvn-avatar-circle" style="background-image: url('https://images-ext-1.discordapp.net/external/pUHy9mkyOXMRrMaXSIBTcATp8qU9GorTHTW6s-GAQjQ/%3Fsize%3D4096%26ignore%3Dtrue/https/cdn.discordapp.com/avatars/1461706823039193240/b210b828e9c1d5f5a3443e49a3713b60.png?format=webp&quality=lossless&width=192&height=192')">
+                        <img class="hvn-avatar-deco" src="" alt="">
+                        <div class="hvn-status-dot"></div>
+                    </div>
+                </div>
+                <div class="hvn-info">
+                    <div class="hvn-username">Vi</div>
+                    <div class="hvn-tag">@desvmate</div>
+                    <div class="hvn-bio">...</div>
+                    <div class="hvn-status-text"><span class="dot-small"></span> <span class="status-label">Offline</span></div>
+                    <div class="hvn-activity">
+                        <img class="hvn-activity-art" src="" alt="">
+                        <div class="hvn-activity-text">
+                            <div class="hvn-activity-title"></div>
+                            <div class="hvn-activity-subtitle"></div>
+                            <div class="hvn-activity-elapsed"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hvn-card" data-user-id="843393224210120714">
+                <div class="hvn-banner" style="background-image: url('')"></div>
+                <div class="hvn-avatar-wrap">
+                    <div class="hvn-avatar-circle" style="background-image: url('https://cdn.discordapp.com/avatars/843393224210120714/2d0543b68501b5a0d892d4896272999a.png?size=256')">
+                        <img class="hvn-avatar-deco" src="" alt="">
+                        <div class="hvn-status-dot"></div>
+                    </div>
+                </div>
+                <div class="hvn-info">
+                    <div class="hvn-username">...</div>
+                    <div class="hvn-tag">@niykx</div>
+                    <div class="hvn-bio"></div>
+                    <div class="hvn-status-text"><span class="dot-small"></span> <span class="status-label">Offline</span></div>
+                    <div class="hvn-activity">
+                        <img class="hvn-activity-art" src="" alt="">
+                        <div class="hvn-activity-text">
+                            <div class="hvn-activity-title"></div>
+                            <div class="hvn-activity-subtitle"></div>
+                            <div class="hvn-activity-elapsed"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hvn-card" data-user-id="1349795683573567518">
+                <div class="hvn-banner" style="background-image: url('https://file.garden/aPNQD5oGSn0LJI5K/e090156d60c4142b206e497fe24fe0f6.png')"></div>
+                <div class="hvn-avatar-wrap">
+                    <div class="hvn-avatar-circle" style="background-image: url('https://images-ext-1.discordapp.net/external/pUHy9mkyOXMRrMaXSIBTcATp8qU9GorTHTW6s-GAQjQ/%3Fsize%3D4096%26ignore%3Dtrue/https/cdn.discordapp.com/avatars/1461706823039193240/b210b828e9c1d5f5a3443e49a3713b60.png?format=webp&quality=lossless&width=192&height=192')">
+                        <img class="hvn-avatar-deco" src="" alt="">
+                        <div class="hvn-status-dot"></div>
+                    </div>
+                </div>
+                <div class="hvn-info">
+                    <div class="hvn-username">akie</div>
+                    <div class="hvn-tag">@seakiera</div>
+                    <div class="hvn-bio">...</div>
+                    <div class="hvn-status-text"><span class="dot-small"></span> <span class="status-label">Offline</span></div>
+                    <div class="hvn-activity">
+                        <img class="hvn-activity-art" src="" alt="">
+                        <div class="hvn-activity-text">
+                            <div class="hvn-activity-title"></div>
+                            <div class="hvn-activity-subtitle"></div>
+                            <div class="hvn-activity-elapsed"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="section-divider1" id="archive-section">
+            <span class="section-label1">archives</span>
+        </div>
+        <div class="archive-grid">
+            <div class="archive-video">
+                <iframe src="https://streamable.com/e/rtosru" allowfullscreen loading="lazy"></iframe>
+            </div>
+            <div class="archive-video">
+                <iframe src="https://streamable.com/e/vh7r2b" allowfullscreen loading="lazy"></iframe>
+            </div>
+        </div>
+
+        <div class="section-divider1">
+            <span class="section-label1">about us</span>
+        </div>
+        <div class="typing-wrapper">
+            <span id="typing-text1"></span><span class="cursor">|</span>
+        </div>
+        <div class="section-divider1">
+            <span class="section-label1">1137</span>
+        </div>
+        <section class="section-members">
+            <div class="button-header"><h1></h1></div>
+            <div class="static-row-1137" id="trail-1137"></div>
+        </section>
+
+        <footer>developed by <a href="https://iyxei.lol">@deobfxscated</a></footer>
+    </div>
+
+    <audio id="main-audio" preload="auto" autoplay loop>
+        <source src="https://file.garden/aPNQD5oGSn0LJI5K/Edwin%20McCain%20-%20I'll%20Be%20(Official%20Music%20Video)%20(mp3cut.net).mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        (function() {
+            const asciiEl = document.getElementById("ascii-text");
+            const finalArt = 'introducing, heaven.';
+            let currentDisplayState = Array(finalArt.length).fill(" ");
+            for (let i = 0; i < finalArt.length; i++) {
+                if (finalArt[i] === "\n") currentDisplayState[i] = "\n";
+            }
+            let targets = [];
+            for (let i = 0; i < finalArt.length; i++) {
+                if (finalArt[i] !== " " && finalArt[i] !== "\n") targets.push(i);
+            }
+            for (let i = targets.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [targets[i], targets[j]] = [targets[j], targets[i]];
+            }
+            const budget = 2000;
+            const step = budget / targets.length;
+            let idx = 0;
+            const progress = document.getElementById('intro-progress-fill');
+            const overlay = document.getElementById('intro-overlay');
+            const main = document.getElementById('main-content');
+
+            function finish() {
+                overlay.style.opacity = '0';
+                overlay.style.visibility = 'hidden';
+                document.body.style.overflow = 'auto';
+                main.style.display = 'block';
+                setTimeout(() => {
+                    main.classList.add('revealed');
+                }, 300);
+            }
+
+            function loop() {
+                if (idx < targets.length) {
+                    currentDisplayState[targets[idx]] = finalArt[targets[idx]];
+                    asciiEl.textContent = currentDisplayState.join("");
+                    if (progress) progress.style.width = `${(idx / targets.length) * 100}%`;
+                    idx++;
+                    setTimeout(loop, step);
+                } else {
+                    if (progress) progress.style.width = '100%';
+                    setTimeout(finish, 800);
+                }
+            }
+            loop();
+        })();
+
+        (function() {
+            const el = document.getElementById('typing-text');
+            const phrases = ["Not even the gods above, could separate the two of us."];
+            let phraseIdx = 0, charIdx = 0, del = false;
+            const ts = 50, ds = 50, pause = 1500;
+            function type() {
+                const p = phrases[phraseIdx];
+                if (!del) {
+                    el.textContent = p.substring(0, charIdx + 1);
+                    charIdx++;
+                    if (charIdx === p.length) { del = true; setTimeout(type, pause); return; }
+                } else {
+                    el.textContent = p.substring(0, charIdx - 1);
+                    charIdx--;
+                    if (charIdx === 0) { del = false; phraseIdx = (phraseIdx + 1) % phrases.length; setTimeout(type, 300); return; }
+                }
+                setTimeout(type, del ? ds : ts);
+            }
+            setTimeout(type, 800);
+        })();
+
+        (function() {
+            const el = document.getElementById('typing-text1');
+            const phrases = ["HEAVEN is for the yearners — the ones who love like it's a religion, who ache for a touch they've never felt, who romanticize every glance, every word, every silence. We are pure romance in a digital world, devoted to the feeling of falling, and falling, and falling."];
+            let phraseIdx = 0, charIdx = 0, del = false;
+            const ts = 50, ds = 50, pause = 1500;
+            function type() {
+                const p = phrases[phraseIdx];
+                if (!del) {
+                    el.textContent = p.substring(0, charIdx + 1);
+                    charIdx++;
+                    if (charIdx === p.length) { del = true; setTimeout(type, pause); return; }
+                } else {
+                    el.textContent = p.substring(0, charIdx - 1);
+                    charIdx--;
+                    if (charIdx === 0) { del = false; phraseIdx = (phraseIdx + 1) % phrases.length; setTimeout(type, 300); return; }
+                }
+                setTimeout(type, del ? ds : ts);
+            }
+            setTimeout(type, 800);
+        })();
+
+        (function() {
+            const layers = document.querySelectorAll('.bg-layer');
+            const trigger1 = document.getElementById('members-section');
+            const trigger2 = document.getElementById('hall-of-fame-cards');
+
+            function updateBackground() {
+                if (!trigger1 || !trigger2) return;
+                const vh = window.innerHeight;
+                const rect2 = trigger2.getBoundingClientRect();
+
+                let activeBg = 1;
+                if (rect2.top < vh * 0.6) {
+                    activeBg = 2;
+                }
+
+                layers.forEach(layer => {
+                    const bg = parseInt(layer.dataset.bg, 10);
+                    layer.classList.toggle('active', bg === activeBg);
+                });
+            }
+
+            window.addEventListener('scroll', updateBackground, { passive: true });
+            window.addEventListener('resize', updateBackground);
+            updateBackground();
+        })();
+
+        (function() {
+            const btn = document.getElementById('music-toggle');
+            const audio = document.getElementById('main-audio');
+            if (!btn || !audio) return;
+
+            window.hvnUserPaused = false;
+            window.hvnCardAudios = [];
+
+            function syncState() {
+                if (window.hvnUserPaused) {
+                    btn.classList.remove('on');
+                    btn.innerHTML = '&#9834;&#822;';
+                } else {
+                    btn.classList.add('on');
+                    btn.innerHTML = '&#9835;';
+                }
+            }
+
+            btn.addEventListener('click', function() {
+                if (window.hvnUserPaused) {
+                    window.hvnUserPaused = false;
+                    audio.play().catch(() => {});
+                } else {
+                    window.hvnUserPaused = true;
+                    audio.pause();
+                    (window.hvnCardAudios || []).forEach(a => a.pause());
+                }
+                syncState();
+            });
+
+            syncState();
+        })();
+
+        (function() {
+            const cards = document.querySelectorAll('.hvn-card');
+            const allIds = [...new Set(Array.from(cards).map(r => r.dataset.userId))];
+            const songs = [
+                "https://file.garden/aN0Uo2YmaWI-OmAY/Teenage%20Fever%20%5BUc57OKGTDXk%5D%20(mp3cut.net).mp3",
+                "https://file.garden/aTZTACJbkUlB55j2/Anna%20Of%20The%20North%20-%20Lovers%20(Lyrics).mp3",
+                "https://file.garden/aTZTACJbkUlB55j2/Succ%20Mah%20D_cc%20-%20Crestt%20tpk%20(feat.%20Don%20Owa)%20official%20music%20video.mp3",
+                "https://file.garden/aTZTACJbkUlB55j2/lany-xxl-official-lyric-video_KxR8ZwzK.mp3",
+                "https://file.garden/aTZTACJbkUlB55j2/Anna%20Of%20The%20North%20-%20Lovers%20(Lyrics).mp3"
+            ];
+
+            let hoveredCount = 0;
+            let resumeTimer = null;
+            const mainAudio = document.getElementById('main-audio');
+
+            function updateCard(card, user) {
+                const userId = user.discord_user.id;
+                const avatarUrl = user.discord_user.avatar
+                    ? `https://cdn.discordapp.com/avatars/${userId}/${user.discord_user.avatar}.png?size=160`
+                    : `https://cdn.discordapp.com/embed/avatars/${Math.floor(Math.random() * 5)}.png`;
+
+                const avatarCircle = card.querySelector('.hvn-avatar-circle');
+                avatarCircle.style.backgroundImage = `url(${avatarUrl})`;
+
+                const deco = card.querySelector('.hvn-avatar-deco');
+                if (user.discord_user.avatar_decoration_data) {
+                    const asset = user.discord_user.avatar_decoration_data.asset;
+                    deco.src = `https://cdn.discordapp.com/avatar-decoration-presets/${asset}.png?size=160&passthrough=true`;
+                    deco.classList.add('loaded');
+                } else {
+                    deco.classList.remove('loaded');
+                }
+
+                const statusDot = card.querySelector('.hvn-status-dot');
+                const status = user.discord_status || 'offline';
+                statusDot.className = `hvn-status-dot ${status}`;
+
+                const username = card.querySelector('.hvn-username');
+                const tag = card.querySelector('.hvn-tag');
+                const bio = card.querySelector('.hvn-bio');
+                const statusLabel = card.querySelector('.status-label');
+                const dotSmall = card.querySelector('.dot-small');
+
+                const globalName = user.discord_user.global_name || user.discord_user.username;
+                username.textContent = globalName;
+                tag.textContent = '@' + user.discord_user.username;
+                bio.textContent = user.activities?.find(a => a.type === 4)?.state || '';
+
+                const statusMap = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline' };
+                statusLabel.textContent = statusMap[status] || 'Offline';
+                dotSmall.className = `dot-small dot-${status}`;
+
+                const activitySection = card.querySelector('.hvn-activity');
+                const activityArt = card.querySelector('.hvn-activity-art');
+                const activityTitle = card.querySelector('.hvn-activity-title');
+                const activitySubtitle = card.querySelector('.hvn-activity-subtitle');
+                const activityElapsed = card.querySelector('.hvn-activity-elapsed');
+
+                const activities = user.activities || [];
+                const activity = activities.find(a => a.type !== 4);
+
+                if (activity) {
+                    activitySection.classList.add('active');
+
+                    let artUrl = '';
+                    let titleText = '';
+                    let subtitleText = '';
+
+                    if (activity.type === 2 && activity.name === 'Spotify') {
+                        titleText = activity.details || '';
+                        subtitleText = activity.state || '';
+                        if (activity.assets && activity.assets.large_image) {
+                            artUrl = `https://i.scdn.co/image/${activity.assets.large_image}`;
+                        }
+                    } else {
+                        titleText = activity.name || '';
+                        subtitleText = activity.details || activity.state || '';
+                        if (activity.assets && activity.assets.large_image) {
+                            const img = activity.assets.large_image;
+                            if (img.startsWith('mp:external/')) {
+                                artUrl = `https://media.discordapp.net/external/${img.slice(12)}`;
+                            } else {
+                                artUrl = `https://cdn.discordapp.com/app-assets/${activity.application_id}/${img}.png`;
+                            }
+                        }
+                    }
+
+                    activityArt.src = artUrl || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                    activityTitle.textContent = titleText;
+                    activitySubtitle.textContent = subtitleText;
+
+                    if (activity.timestamps && activity.timestamps.start) {
+                        activityElapsed.dataset.start = activity.timestamps.start;
+                        const now = Date.now();
+                        const diff = Math.floor((now - activity.timestamps.start) / 1000);
+                        const hours = Math.floor(diff / 3600);
+                        const minutes = Math.floor((diff % 3600) / 60);
+                        const seconds = diff % 60;
+                        if (hours > 0) {
+                            activityElapsed.textContent = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} elapsed`;
+                        } else {
+                            activityElapsed.textContent = `${minutes}:${String(seconds).padStart(2, '0')} elapsed`;
+                        }
+                    } else {
+                        activityElapsed.dataset.start = '';
+                        activityElapsed.textContent = '';
+                    }
+                } else {
+                    activitySection.classList.remove('active');
+                    activityElapsed.dataset.start = '';
+                    activityElapsed.textContent = '';
+                }
+            }
+
+            setInterval(() => {
+                document.querySelectorAll('.hvn-activity-elapsed').forEach(el => {
+                    const start = parseInt(el.dataset.start, 10);
+                    if (start) {
+                        const now = Date.now();
+                        const diff = Math.floor((now - start) / 1000);
+                        const hours = Math.floor(diff / 3600);
+                        const minutes = Math.floor((diff % 3600) / 60);
+                        const seconds = diff % 60;
+                        if (hours > 0) {
+                            el.textContent = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} elapsed`;
+                        } else {
+                            el.textContent = `${minutes}:${String(seconds).padStart(2, '0')} elapsed`;
+                        }
+                    } else {
+                        el.textContent = '';
+                    }
+                });
+            }, 1000);
+
+            let heartbeatTimer = null;
+            let reconnectTimer = null;
+
+            function connect() {
+                const ws = new WebSocket('wss://api.lanyard.rest/socket');
+
+                ws.onopen = () => {
+                    ws.send(JSON.stringify({ op: 2, d: { subscribe_to_ids: allIds } }));
+                };
+
+                ws.onmessage = (event) => {
+                    const { op, t, d } = JSON.parse(event.data);
+
+                    if (op === 1) {
+                        clearInterval(heartbeatTimer);
+                        heartbeatTimer = setInterval(() => {
+                            if (ws.readyState === WebSocket.OPEN) {
+                                ws.send(JSON.stringify({ op: 3 }));
+                            }
+                        }, d.heartbeat_interval);
+                    }
+
+                    if (t === 'INIT_STATE') {
+                        for (const [id, data] of Object.entries(d)) {
+                            document
+                                .querySelectorAll(`.hvn-card[data-user-id="${id}"]`)
+                                .forEach(c => updateCard(c, data));
+                        }
+                    }
+
+                    if (t === 'PRESENCE_UPDATE') {
+                        const id = d.discord_user.id;
+                        document
+                            .querySelectorAll(`.hvn-card[data-user-id="${id}"]`)
+                            .forEach(c => updateCard(c, d));
+                    }
+                };
+
+                ws.onerror = () => { try { ws.close(); } catch (e) {} };
+
+                ws.onclose = () => {
+                    clearInterval(heartbeatTimer);
+                    clearTimeout(reconnectTimer);
+                    reconnectTimer = setTimeout(connect, 5000);
+                };
+            }
+
+            connect();
+
+            cards.forEach((card, idx) => {
+                const audio = new Audio();
+                audio.src = songs[idx % songs.length];
+                audio.loop = true;
+                audio.preload = 'none';
+                window.hvnCardAudios.push(audio);
+
+                card.addEventListener('mouseenter', () => {
+                    hoveredCount++;
+                    clearTimeout(resumeTimer);
+
+                    if (mainAudio && !mainAudio.paused) mainAudio.pause();
+
+                    if (!window.hvnUserPaused) {
+                        audio.currentTime = 0;
+                        audio.play().catch(() => {});
+                    }
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    hoveredCount = Math.max(0, hoveredCount - 1);
+                    audio.pause();
+
+                    if (hoveredCount === 0 && mainAudio && !window.hvnUserPaused) {
+                        resumeTimer = setTimeout(() => {
+                            if (hoveredCount === 0 && !window.hvnUserPaused) {
+                                mainAudio.play().catch(() => {});
+                            }
+                        }, 300);
+                    }
+                });
+            });
+        })();
+
+        (async function buildTrail() {
+            const members1137 = ['1441730271396364419','1234803161454084096','1032937611423121408',
+            '1329747480480579678','1332667506929963082','1311260313852837898','468983833346179072',
+            '738379393918828697','1220767830002110594','1299700793389351003'];
+            const container = document.getElementById('trail-1137');
+            if (!container) return;
+
+            const fetchUser = id =>
+                fetch(`https://api.lanyard.rest/v1/users/${id}`)
+                    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                    .then(d => d.data)
+                    .catch(() => null);
+
+            const results = await Promise.all(members1137.map(fetchUser));
+
+            results.forEach((user, i) => {
+                const id = members1137[i];
+                let avatarUrl, displayName;
+                if (user) {
+                    avatarUrl = user.discord_user.avatar
+                        ? `https://cdn.discordapp.com/avatars/${id}/${user.discord_user.avatar}.png?size=64`
+                        : `https://cdn.discordapp.com/embed/avatars/${Math.floor(Math.random() * 5)}.png`;
+                    displayName = user.discord_user.global_name || user.discord_user.username || 'Unknown';
+                } else {
+                    avatarUrl = `https://cdn.discordapp.com/embed/avatars/${i % 5}.png`;
+                    displayName = 'Unknown';
+                }
+                const a = document.createElement('a');
+                a.className = 'trail-card';
+                a.href = `https://discord.com/users/${id}`;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+
+                const img = document.createElement('img');
+                img.src = avatarUrl;
+                img.alt = displayName;
+                img.className = 'trail-avatar';
+
+                const span = document.createElement('span');
+                span.className = 'trail-name';
+                span.textContent = displayName;
+
+                a.appendChild(img);
+                a.appendChild(span);
+                container.appendChild(a);
+            });
+        })();
+    </script>
+</body>
+</html>
